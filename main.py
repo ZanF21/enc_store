@@ -6,7 +6,7 @@ from cryptography.fernet import Fernet
 import pyperclip
 
 HOME = os.path.expanduser("~")
-CURR_DIR = os.path.dirname(os.path.realpath(__file__))
+CURR_DIR = os.getcwd()
 INIT_PATH = os.path.join(HOME, ".pass_store")
 
 
@@ -75,18 +75,17 @@ def advanced():
 
 
 def list_all():
-    pwd = os.getcwd()
     os.chdir(INIT_PATH)
     print("All Stored Passwords:")
     os.system("tree . --noreport")
-    os.chdir(pwd)
+    os.chdir(CURR_DIR)
     print("\n")
     return
 
 
 def export():
-    os.system("cp -r " + INIT_PATH + " " + os.path.join("pass_export"))
-    os.system(f"tar cfz pass_export.tar.gz pass_export ")
+    os.system("cp -r " + INIT_PATH + " " + os.path.join(CURR_DIR, "pass_export"))
+    os.system(f"tar cfz pass_export.tar.gz pass_export")
     os.system(f"rm -r pass_export")
     print(f"Exported to {os.path.join(CURR_DIR, 'pass_export.tar.gz')}")
 
@@ -150,8 +149,9 @@ def init():
 
 def add(cipher):
     print("Existing DIRs:")
-    PWD = os.getcwd()
-    os.system(f"cd {INIT_PATH} && tree . --noreport -d && cd {PWD}")
+    os.chdir(INIT_PATH)
+    os.system(f"tree . -d --noreport")
+    os.chdir(CURR_DIR)
     print("\n")
     enc_path = input("Which DIR: ")
     file_name = input("Username: ")
