@@ -7,7 +7,7 @@ import pyperclip
 
 HOME = os.path.expanduser("~")
 CURR_DIR = os.path.dirname(os.path.realpath(__file__))
-INIT_PATH = os.path.join(CURR_DIR, ".pass_store")
+INIT_PATH = os.path.join(HOME, ".pass_store")
 
 
 class bcolors:
@@ -23,16 +23,18 @@ class bcolors:
 
 
 def run(cipher):
+    if not isInitialized():
+        init()
     print("1. View\n2. Add\n3. Delete\n4. Exit")
     choice = input()
     os.system("clear")
-    
+
     try:
         choice_int = int(choice)
     except ValueError:
         print("Invalid Input (not a number)")
         return True
-    
+
     if choice_int == 1:
         view(cipher)
     elif choice_int == 2:
@@ -47,18 +49,19 @@ def run(cipher):
         print("Invalid choice")
     return True
 
+
 def advanced():
     print("Advanced Options")
     print("1. Initialize")
     print("2. Export all passwords")
     choice = input()
-    
+
     try:
         choice_int = int(choice)
     except ValueError:
         print("Invalid Input (not a number)")
         return
-    
+
     if choice_int == 1:
         init()
     elif choice_int == 2:
@@ -66,6 +69,7 @@ def advanced():
     else:
         print("Invalid choice")
     return
+
 
 def export():
     os.system("cp -r " + INIT_PATH + " " + os.path.join("pass_export"))
@@ -150,10 +154,10 @@ def view(cipher):
         with open(os.path.join(path_followed, all_files[choice_int - 1]), "rb") as f:
             try:
                 pyperclip.copy(cipher.decrypt(f.read()).decode())
-                print("Copied to clipboard")
+                print(bcolors.OKGREEN + "Copied to clipboard" + bcolors.ENDC)
                 exit(0)
             except Exception as e:
-                print("incorrect key ig")
+                print(bcolors.FAIL + "incorrect key ig" + bcolors.ENDC)
                 exit(1)
     return
 
@@ -170,6 +174,19 @@ def init():
 
 
 def add(cipher):
+#     find .pass_store -type d -print0 | while IFS= read -r -d '' dir; do
+#   if [ -z "$(find "$dir" -mindepth 1 -type d 2>/dev/null)" ]; then
+#     echo "$dir"
+#   fi
+# done
+    print("Existing DIRs:")
+    PWD = os.getcwd()
+    os.system("cd " + INIT_PATH)
+
+    cmd = "find . -type d -print0 | while IFS= read -r -d '' dir; do if [ -z \"$(find \"$dir\" -mindepth 1 -type d 2>/dev/null)\" ]; then echo \"$dir\"; fi; done"
+    os.system(cmd)
+    os.system("cd " + PWD)
+    print("\n")
     enc_path = input("Which DIR: ")
     file_name = input("Username: ")
 
@@ -180,13 +197,9 @@ def add(cipher):
     enc_stuff = cipher.encrypt(imp_stuff.encode())
     with open(os.path.join(exact_path, file_name), "wb+") as f:
         f.write(enc_stuff)
+    os.system("clear")
     print("Added")
-    new_cipher = cipher_gen("Verify (input encryption password again): ")
-    if new_cipher._verify_signature(enc_stuff):
-        print(bcolors.OKGREEN + "Verified" + bcolors.ENDC)
-    else:
-        print(bcolors.FAIL + "\tIncorrect Password\n\tDeleting" + bcolors.ENDC)
-        os.remove(os.path.join(exact_path, file_name))
 
 
-main()
+if __name__ == "__main__":
+    main()
