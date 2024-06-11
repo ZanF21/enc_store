@@ -44,15 +44,17 @@ def run(cipher):
     elif choice_int == 4:
         return False
     elif choice_int == 0:
-        advanced()
+        advanced(cipher)
     else:
         print("Invalid choice")
     return True
 
 
-def advanced():
+def advanced(cipher):
     print("Advanced Options")
-    print("1. Initialize\n2. Export\n3. List All\n0. Go back")
+    print(
+        "1. Initialize\n2. Export\n3. List All\n4. Add file(you need to copy the path to file)\n5. View file\n0. Go back"
+    )
     choice = input(": ")
     os.system("clear")
     try:
@@ -67,6 +69,10 @@ def advanced():
         export()
     elif choice_int == 3:
         list_all()
+    elif choice_int == 4:
+        add_file(cipher)
+    elif choice_int == 5:
+        view_file(cipher)
     elif choice_int == 0:
         return
     else:
@@ -81,6 +87,29 @@ def list_all():
     os.chdir(CURR_DIR)
     print("\n")
     return
+
+
+def add_file(cipher):
+    path = input("Enter path to file: ")
+    file_ext = path.split("/")[-1].split(".")[-1]
+    os.system("clear")
+
+    print("Existing DIRs:")
+    os.chdir(INIT_PATH)
+    os.system(f"tree . -d --noreport")
+    os.chdir(CURR_DIR)
+    print("\n")
+    enc_path = input("Which DIR: ")
+    exact_path = os.path.join(INIT_PATH, enc_path)
+    os.makedirs(os.path.dirname(exact_path + "/"), exist_ok=True)
+    file_name = input("File Name ")
+
+    with open(path, "rb") as f:
+        enc_stuff = cipher.encrypt(f.read())
+        with open(os.path.join(exact_path, file_name + "." + file_ext), "wb+") as f:
+            f.write(enc_stuff)
+    os.system("clear")
+    print("Added")
 
 
 def export():
@@ -131,8 +160,33 @@ def view(cipher):
                 exit(0)
             except Exception as e:
                 print(bcolors.FAIL + "incorrect key ig" + bcolors.ENDC)
+                print(e)
                 exit(0)
 
+    except Exception as e:
+        print(e)
+        return
+
+
+def view_file(cipher):
+    try:
+        path = select_file()
+        file_name = path.split("/")[-1]
+        file_ext = file_name.split(".")[-1]
+        with open(path, "rb") as f:
+            try:
+                with open(f"temp_file.{file_ext}", "wb+") as temp_f:
+                    temp_f.write(cipher.decrypt(f.read()))
+                print(
+                    bcolors.OKGREEN
+                    + f"Decrypted file stored in {CURR_DIR}/temp_file.{file_ext}"
+                    + bcolors.ENDC
+                )
+                exit(0)
+            except Exception as e:
+                print(bcolors.FAIL + "incorrect key ig" + bcolors.ENDC)
+                print(e)
+                exit(0)
     except Exception as e:
         print(e)
         return
@@ -228,17 +282,34 @@ def select_file():
 def delete(cipher):
     try:
         path = select_file()
+        # get file extension
+        file_ext = path.split("/")[-1].split(".")[-1]
+        _decode = True
+        if file_ext == "png":
+            _decode = False
         with open(path, "rb") as f:
             try:
-                pyperclip.copy(cipher.decrypt(f.read()).decode())
+                if _decode:
+                    pyperclip.copy(cipher.decrypt(f.read()).decode())
+                else:
+                    with open(f"temp_file.{file_ext}", "wb+") as temp_f:
+                        temp_f.write(cipher.decrypt(f.read()))
                 os.remove(path)
                 short_path = path[len(INIT_PATH) + 1 :]
                 os.system("find " + INIT_PATH + " -type d -empty -delete")
-                print(
-                    bcolors.OKGREEN
-                    + f"Deleted {short_path} and copied to clipboard (just in case)"
-                    + bcolors.ENDC
-                )
+                if _decode:
+                    print(
+                        bcolors.OKGREEN
+                        + f"Deleted {short_path} and copied to clipboard (just in case)"
+                        + bcolors.ENDC
+                    )
+                else:
+                    print(
+                        bcolors.OKGREEN
+                        + f"Deleted {short_path}, but decrypted temp_file.{file_ext} created"
+                        + bcolors.ENDC
+                    )
+                exit(0)
             except Exception as e:
                 print(bcolors.FAIL + "incorrect key ig" + bcolors.ENDC)
                 exit(0)
