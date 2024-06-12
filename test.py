@@ -79,36 +79,3 @@ while not file_selected:
 print(final_path)
 
 exit(0)
-# if path == ".":
-#     final_path = os.getcwd()
-# else:
-#     # ~/ path
-#     curr_path = os.getcwd()
-#     os.chdir("")
-#     final_path = os.getcwd()
-
-
-# while true:
-
-# x = input("Enter the path: ")
-
-# path_followed = os.getcwd()
-# l = [
-#     x
-#     for x in os.listdir(path_followed)
-#     if os.path.isdir(os.path.join(path_followed, x))
-# ]
-# l.sort()
-
-# # list of files only not dir
-# all_files = [
-#     x
-#     for x in os.listdir(path_followed)
-#     if not os.path.isdir(os.path.join(path_followed, x))
-# ]
-
-# for f in all_files:
-#     print(f)
-# print(all_files)
-
-# print(l)
